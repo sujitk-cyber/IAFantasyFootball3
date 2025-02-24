@@ -1,283 +1,81 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fantasy Football Draft Tracker</title>
+  <title>Login</title>
   <style>
-    /* Global Styles */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      background-color: #f8f8f8;
-      color: #333;
-    }
-    /* Header styling */
-    .header {
-      background-color: #003366;
-      color: #fff;
-      padding: 20px;
-      text-align: center;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 2.5em;
-      letter-spacing: 1px;
-    }
-    /* Login Container */
-    #loginContainer {
-      max-width: 400px;
-      margin: 100px auto;
-      background-color: #fff;
-      padding: 20px;
-      border: 1px solid #ddd;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    #loginContainer h2 {
-      margin-top: 0;
-    }
-    #loginContainer input {
-      width: 80%;
-      padding: 8px;
-      margin: 10px 0;
-      font-size: 1em;
-    }
-    #loginContainer button {
-      padding: 8px 16px;
-      font-size: 1em;
-    }
-    /* Main Container */
-    #mainContainer {
-      display: none;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 20px auto;
-      background-color: #fff;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    /* Dropdown styling */
-    #dropdownContainer {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    #dropdownContainer label {
-      font-size: 1.1em;
-      margin-right: 10px;
-    }
-    #positionSelect {
-      padding: 8px 12px;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    /* Table styling */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    thead {
-      background-color: #e10600;
-      color: #fff;
-    }
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    tbody tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    tbody tr:hover {
-      background-color: #f1f1f1;
-    }
-    /* Crossed-out style for drafted players */
-    tr.drafted {
-      text-decoration: line-through;
-      opacity: 0.5;
-    }
-    /* Responsive styling */
-    @media (max-width: 768px) {
-      .container {
-        margin: 10px;
-        padding: 10px;
-      }
-      th, td {
-        font-size: 0.9em;
-        padding: 8px;
-      }
-      .header h1 {
-        font-size: 1.8em;
-      }
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .form-container { max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; }
+    h2 { text-align: center; }
+    input { width: 100%; padding: 10px; margin: 5px 0; }
+    button { width: 100%; padding: 10px; margin-top: 10px; }
+    .error { color: red; text-align: center; }
+    .success { color: green; text-align: center; }
   </style>
-  <!-- Include PapaParse library from CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
-  <div class="header">
-    <h1>Half-Point PPR NFL Cheatsheets</h1>
-  </div>
-
-  <!-- Login Page -->
-  <div id="loginContainer">
+  <!-- Login Form -->
+  <div id="loginForm" class="form-container">
     <h2>Login</h2>
-    <form id="loginForm">
-      <label for="username">Username:</label><br>
-      <input type="text" id="username" required><br>
-      <label for="password">Password:</label><br>
-      <input type="password" id="password"><br>
-      <button type="submit">Login</button>
-    </form>
-  </div>
-
-  <!-- Main Page -->
-  <div id="mainContainer">
-    <div class="container">
-      <div id="dropdownContainer">
-        <label for="positionSelect">Filter by Position:</label>
-        <select id="positionSelect" onchange="updateTable()">
-          <option value="All">All</option>
-          <option value="QB">QB</option>
-          <option value="RB">RB</option>
-          <option value="WR">WR</option>
-          <option value="TE">TE</option>
-        </select>
-      </div>
-      <div id="tableContainer">
-        <!-- Table will be generated here -->
-      </div>
-      <div style="text-align:center; margin-top:20px;">
-        <button onclick="logout()">Logout</button>
-      </div>
-    </div>
+    <div id="loginMessage"></div>
+    <input type="text" id="loginUsername" placeholder="Username" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button onclick="login()">Login</button>
   </div>
 
   <script>
-    let playersData = [];
-    let loggedInUser = null;
-    let draftState = {}; // mapping of RK to drafted boolean
-
-    // On window load, check if a user is logged in
+    // Always clear any saved login info so every session starts at the login page.
     window.onload = function() {
-      console.log("Window loaded");
-      loggedInUser = localStorage.getItem("loggedInUser");
-      if(loggedInUser) {
-        console.log("User logged in:", loggedInUser);
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("mainContainer").style.display = "block";
-        // Load user's draft state if it exists
-        const storedDraftState = localStorage.getItem("draftState_" + loggedInUser);
-        if(storedDraftState) {
-          draftState = JSON.parse(storedDraftState);
-        }
-        loadCSV();
-      } else {
-        console.log("No user logged in");
-        document.getElementById("loginContainer").style.display = "block";
-        document.getElementById("mainContainer").style.display = "none";
-      }
+      localStorage.removeItem("loggedInUser");
+      // Ensure the login form is visible.
+      document.getElementById("loginForm").style.display = "block";
     };
 
-    // Login form handler
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      let username = document.getElementById("username").value.trim();
-      console.log("Login attempt with username:", username);
-      // For demo purposes, we ignore password validation.
-      if(username) {
-        loggedInUser = username;
-        localStorage.setItem("loggedInUser", loggedInUser);
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("mainContainer").style.display = "block";
-        loadCSV();
+    const API_BASE = "http://localhost:3000/api";
+
+    function login() {
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      if (!username || !password) {
+        document.getElementById("loginMessage").innerHTML =
+          "<div class='error'>Please enter username and password</div>";
+        return;
       }
-    });
-
-    // Logout function
-    function logout() {
-      localStorage.removeItem("loggedInUser");
-      loggedInUser = null;
-      location.reload();
-    }
-
-    // Load CSV data using PapaParse and merge with stored draft state
-    function loadCSV() {
-      Papa.parse("/data.csv", {
-        download: true,
-        header: true,
-        complete: function(results) {
-          playersData = results.data.map(row => {
-            // Set the drafted state from the stored draft state, if available.
-            row.drafted = draftState[row["RK"]] || false;
-            return row;
-          });
-          updateTable();
-        },
-        error: function(error) {
-          console.error("Error loading CSV file:", error);
+      fetch(API_BASE + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById("loginMessage").innerHTML =
+            "<div class='error'>" + data.error + "</div>";
+        } else {
+          document.getElementById("loginMessage").innerHTML =
+            "<div class='success'>" + data.message + "</div>";
+          // Save loggedInUser to localStorage.
+          localStorage.setItem("loggedInUser", username);
+          // Redirect to the draft tracker page after a short delay.
+          setTimeout(() => {
+            window.location.href = "draft.html";
+          }, 1000);
         }
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById("loginMessage").innerHTML =
+          "<div class='error'>An error occurred</div>";
       });
-    }
-
-    // Toggle the drafted status for a player identified by RK.
-    function toggleDrafted(rk) {
-      playersData.forEach(player => {
-        if(player["RK"] === rk) {
-          player.drafted = !player.drafted;
-          draftState[rk] = player.drafted;
-        }
-      });
-      // Save the updated draft state for the logged in user.
-      localStorage.setItem("draftState_" + loggedInUser, JSON.stringify(draftState));
-      updateTable();
-    }
-
-    // Update the table based on selected position and drafted state.
-    function updateTable() {
-      const filter = document.getElementById("positionSelect").value;
-      let filteredData = playersData;
-      
-      // Filter by position (compare first two letters of POS).
-      if(filter !== "All") {
-        filteredData = playersData.filter(player => {
-          const pos = player["POS"] ? player["POS"].trim().substring(0,2).toUpperCase() : "";
-          return pos === filter.toUpperCase();
-        });
-      }
-      
-      // Sort so that non-drafted players appear first, then by RK.
-      filteredData.sort((a, b) => {
-        if(a.drafted === b.drafted) {
-          return parseInt(a["RK"]) - parseInt(b["RK"]);
-        }
-        return a.drafted ? 1 : -1;
-      });
-      
-      let tableHTML = "<table>";
-      tableHTML += "<thead><tr><th>RK</th><th>TIERS</th><th>PLAYER NAME</th><th>TEAM</th><th>POS</th><th>BEST</th><th>WORST</th><th>AVG.</th><th>STD.DEV</th><th>ECR VS. ADP</th><th>Action</th></tr></thead>";
-      tableHTML += "<tbody>";
-      filteredData.forEach(item => {
-        let isDrafted = item.drafted || false;
-        tableHTML += `<tr class="${isDrafted ? 'drafted' : ''}">
-                        <td>${item["RK"]}</td>
-                        <td>${item["TIERS"]}</td>
-                        <td>${item["PLAYER NAME"]}</td>
-                        <td>${item["TEAM"]}</td>
-                        <td>${item["POS"]}</td>
-                        <td>${item["BEST"]}</td>
-                        <td>${item["WORST"]}</td>
-                        <td>${item["AVG."]}</td>
-                        <td>${item["STD.DEV"]}</td>
-                        <td>${item["ECR VS. ADP"]}</td>
-                        <td><button onclick="toggleDrafted('${item["RK"]}')">${isDrafted ? "Undraft" : "Draft"}</button></td>
-                      </tr>`;
-      });
-      tableHTML += "</tbody></table>";
-      document.getElementById("tableContainer").innerHTML = tableHTML;
     }
   </script>
+  <script>
+    // If no user is logged in, redirect to the login page.
+    if (!localStorage.getItem("loggedInUser")) {
+      window.location.href = "index.html";
+    }
+  </script>
+  
 </body>
 </html>
