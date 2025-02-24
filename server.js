@@ -12,6 +12,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'your_secret_key'; // Replace with a strong secret in production
 
+// Serve static files from the 'public' directory
+app.use(express.static('public'));
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 // Use JSON body parser middleware
 app.use(bodyParser.json());
 

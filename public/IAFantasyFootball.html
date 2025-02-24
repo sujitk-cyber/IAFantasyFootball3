@@ -162,8 +162,10 @@
 
     // On window load, check if a user is logged in
     window.onload = function() {
+      console.log("Window loaded");
       loggedInUser = localStorage.getItem("loggedInUser");
       if(loggedInUser) {
+        console.log("User logged in:", loggedInUser);
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("mainContainer").style.display = "block";
         // Load user's draft state if it exists
@@ -173,6 +175,7 @@
         }
         loadCSV();
       } else {
+        console.log("No user logged in");
         document.getElementById("loginContainer").style.display = "block";
         document.getElementById("mainContainer").style.display = "none";
       }
@@ -182,6 +185,7 @@
     document.getElementById("loginForm").addEventListener("submit", function(e) {
       e.preventDefault();
       let username = document.getElementById("username").value.trim();
+      console.log("Login attempt with username:", username);
       // For demo purposes, we ignore password validation.
       if(username) {
         loggedInUser = username;
@@ -201,7 +205,7 @@
 
     // Load CSV data using PapaParse and merge with stored draft state
     function loadCSV() {
-      Papa.parse("data.csv", {
+      Papa.parse("/data.csv", {
         download: true,
         header: true,
         complete: function(results) {
