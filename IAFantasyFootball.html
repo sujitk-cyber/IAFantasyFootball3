@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Half-Point PPR NFL Cheatsheets</title>
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background-color: #f8f8f8;
+      color: #333;
+    }
+    /* Header styling */
+    .header {
+      background-color: #003366;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      letter-spacing: 1px;
+    }
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    /* Dropdown styling */
+    #dropdownContainer {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #dropdownContainer label {
+      font-size: 1.1em;
+      margin-right: 10px;
+    }
+    #positionSelect {
+      padding: 8px 12px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead {
+      background-color: #e10600;
+      color: #fff;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+    /* Responsive styling */
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        padding: 10px;
+      }
+      th, td {
+        font-size: 0.9em;
+        padding: 8px;
+      }
+      .header h1 {
+        font-size: 1.8em;
+      }
+    }
+  </style>
+  <!-- Include PapaParse library from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+  <div class="header">
+    <h1>Half-Point PPR NFL Cheatsheets</h1>
+  </div>
+  <div class="container">
+    <div id="dropdownContainer">
+      <label for="positionSelect">Filter by Position:</label>
+      <select id="positionSelect" onchange="updateTable()">
+        <option value="All">All</option>
+        <option value="QB">QB</option>
+        <option value="RB">RB</option>
+        <option value="WR">WR</option>
+        <option value="TE">TE</option>
+      </select>
+    </div>
+    <div id="tableContainer">
+      <!-- Table will be generated here -->
+    </div>
+  </div>
+
+  <script>
+    let playersData = [];
+
+    // Function to generate the table based on the selected position.
+    function updateTable() {
+      const filter = document.getElementById("positionSelect").value;
+      let filteredData = playersData;
+      
+      // Filter data if a specific position is selected
+      if (filter !== "All") {
+        filteredData = playersData.filter(player => {
+          // Get the first two letters from the "POS" field and compare.
+          const pos = player["POS"] ? player["POS"].trim().substring(0,2).toUpperCase() : "";
+          return pos === filter.toUpperCase();
+        });
+      }
+      
+      let tableHTML = "<table>";
+      tableHTML += "<thead><tr><th>RK</th><th>TIERS</th><th>PLAYER NAME</th><th>TEAM</th><th>POS</th><th>BEST</th><th>WORST</th><th>AVG.</th><th>STD.DEV</th><th>ECR VS. ADP</th></tr></thead>";
+      tableHTML += "<tbody>";
+      filteredData.forEach(item => {
+        tableHTML += `<tr>
+                        <td>${item["RK"]}</td>
+                        <td>${item["TIERS"]}</td>
+                        <td>${item["PLAYER NAME"]}</td>
+                        <td>${item["TEAM"]}</td>
+                        <td>${item["POS"]}</td>
+                        <td>${item["BEST"]}</td>
+                        <td>${item["WORST"]}</td>
+                        <td>${item["AVG."]}</td>
+                        <td>${item["STD.DEV"]}</td>
+                        <td>${item["ECR VS. ADP"]}</td>
+                      </tr>`;
+      });
+      tableHTML += "</tbody></table>";
+      document.getElementById("tableContainer").innerHTML = tableHTML;
+    }
+
+    // Load CSV file data using PapaParse
+    Papa.parse("data.csv", {
+      download: true,
+      header: true,
+      complete: function(results) {
+        // Store the parsed CSV data in playersData and update the table.
+        playersData = results.data;
+        updateTable();
+      },
+      error: function(error) {
+        console.error("Error loading CSV file:", error);
+      }
+    });
+  </script>
+</body>
+</html>
