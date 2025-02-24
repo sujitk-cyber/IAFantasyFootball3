@@ -1,0 +1,27 @@
+{
+  "name": "ia-fantasy-football",
+  "version": "1.0.0",
+  "description": "This project has been run through an HTTP terminal. The address for the HTTP terminal is [http://localhost:8000/IAFantasyFootball.html](http://localhost:8000/IAFantasyFootball.html).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sujitk-cyber/IAFantasyFootball3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sujitk-cyber/IAFantasyFootball3/issues"
+  },
+  "homepage": "https://github.com/sujitk-cyber/IAFantasyFootball3#readme",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "csv-parse": "^5.6.0",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "lowdb": "^7.0.1"
+  }
+}
