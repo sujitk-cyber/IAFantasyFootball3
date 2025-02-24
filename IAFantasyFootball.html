@@ -67,6 +67,11 @@
     tbody tr:hover {
       background-color: #f1f1f1;
     }
+    /* Crossed-out style for drafted players */
+    tr.drafted {
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
     /* Responsive styling */
     @media (max-width: 768px) {
       .container {
@@ -108,25 +113,38 @@
   <script>
     let playersData = [];
 
-    // Function to generate the table based on the selected position.
+    // Toggle drafted status based on the unique RK value.
+    function toggleDrafted(rk) {
+      // Find the player with matching RK.
+      playersData.forEach(player => {
+        if (player["RK"] === rk) {
+          // Toggle drafted property; default to false if undefined.
+          player.drafted = !player.drafted;
+        }
+      });
+      updateTable();
+    }
+
+    // Generate the table based on selected position and drafted status.
     function updateTable() {
       const filter = document.getElementById("positionSelect").value;
       let filteredData = playersData;
       
-      // Filter data if a specific position is selected
+      // Filter data if a specific position is selected; compare first two letters.
       if (filter !== "All") {
         filteredData = playersData.filter(player => {
-          // Get the first two letters from the "POS" field and compare.
           const pos = player["POS"] ? player["POS"].trim().substring(0,2).toUpperCase() : "";
           return pos === filter.toUpperCase();
         });
       }
       
       let tableHTML = "<table>";
-      tableHTML += "<thead><tr><th>RK</th><th>TIERS</th><th>PLAYER NAME</th><th>TEAM</th><th>POS</th><th>BEST</th><th>WORST</th><th>AVG.</th><th>STD.DEV</th><th>ECR VS. ADP</th></tr></thead>";
+      tableHTML += "<thead><tr><th>RK</th><th>TIERS</th><th>PLAYER NAME</th><th>TEAM</th><th>POS</th><th>BEST</th><th>WORST</th><th>AVG.</th><th>STD.DEV</th><th>ECR VS. ADP</th><th>Action</th></tr></thead>";
       tableHTML += "<tbody>";
       filteredData.forEach(item => {
-        tableHTML += `<tr>
+        // Check if drafted property exists; default to false.
+        let isDrafted = item.drafted || false;
+        tableHTML += `<tr class="${isDrafted ? 'drafted' : ''}">
                         <td>${item["RK"]}</td>
                         <td>${item["TIERS"]}</td>
                         <td>${item["PLAYER NAME"]}</td>
@@ -137,19 +155,20 @@
                         <td>${item["AVG."]}</td>
                         <td>${item["STD.DEV"]}</td>
                         <td>${item["ECR VS. ADP"]}</td>
+                        <td><button onclick="toggleDrafted('${item["RK"]}')">${isDrafted ? "Undraft" : "Draft"}</button></td>
                       </tr>`;
       });
       tableHTML += "</tbody></table>";
       document.getElementById("tableContainer").innerHTML = tableHTML;
     }
 
-    // Load CSV file data using PapaParse
+    // Load CSV file data using PapaParse.
     Papa.parse("data.csv", {
       download: true,
       header: true,
       complete: function(results) {
-        // Store the parsed CSV data in playersData and update the table.
-        playersData = results.data;
+        // Initialize playersData and ensure each row has a drafted flag.
+        playersData = results.data.map(row => ({ ...row, drafted: false }));
         updateTable();
       },
       error: function(error) {
