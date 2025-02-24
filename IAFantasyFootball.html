@@ -113,12 +113,11 @@
   <script>
     let playersData = [];
 
-    // Toggle drafted status based on the unique RK value.
+    // Toggle drafted status for a player by their unique RK.
     function toggleDrafted(rk) {
-      // Find the player with matching RK.
       playersData.forEach(player => {
         if (player["RK"] === rk) {
-          // Toggle drafted property; default to false if undefined.
+          // Toggle the drafted flag.
           player.drafted = !player.drafted;
         }
       });
@@ -130,7 +129,7 @@
       const filter = document.getElementById("positionSelect").value;
       let filteredData = playersData;
       
-      // Filter data if a specific position is selected; compare first two letters.
+      // Filter data by position if necessary.
       if (filter !== "All") {
         filteredData = playersData.filter(player => {
           const pos = player["POS"] ? player["POS"].trim().substring(0,2).toUpperCase() : "";
@@ -138,11 +137,19 @@
         });
       }
       
+      // Sort so that non-drafted players come first.
+      filteredData.sort((a, b) => {
+        if (a.drafted === b.drafted) {
+          // Sort by RK numerically (assuming RK is numeric)
+          return parseInt(a["RK"]) - parseInt(b["RK"]);
+        }
+        return a.drafted ? 1 : -1;
+      });
+      
       let tableHTML = "<table>";
       tableHTML += "<thead><tr><th>RK</th><th>TIERS</th><th>PLAYER NAME</th><th>TEAM</th><th>POS</th><th>BEST</th><th>WORST</th><th>AVG.</th><th>STD.DEV</th><th>ECR VS. ADP</th><th>Action</th></tr></thead>";
       tableHTML += "<tbody>";
       filteredData.forEach(item => {
-        // Check if drafted property exists; default to false.
         let isDrafted = item.drafted || false;
         tableHTML += `<tr class="${isDrafted ? 'drafted' : ''}">
                         <td>${item["RK"]}</td>
@@ -167,7 +174,7 @@
       download: true,
       header: true,
       complete: function(results) {
-        // Initialize playersData and ensure each row has a drafted flag.
+        // Add a drafted flag to each row (default false) and store the data.
         playersData = results.data.map(row => ({ ...row, drafted: false }));
         updateTable();
       },
