@@ -1,4 +1,4 @@
 # IAFantasyFootball3
 # IAFantasyFootball3
 
-This project has been run through an HTTP terminal. The address for the HTTP terminal is [http://localhost:8000/IAFantasyFootball.html](http://localhost:8000/IAFantasyFootball.html).
+This project should be ran through Live Server in VS Code. In order to do that download the file and open it in VS Code and download the Live Server extension and right click on the IAFantasyFootball.html file and click open with Live Server.
