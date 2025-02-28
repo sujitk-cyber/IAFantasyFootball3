@@ -29,7 +29,7 @@ db.defaults({ users: [] }).write();
 
 // ----- Authentication Endpoints -----
 
-// Login endpoint – for demo purposes, any username is accepted
+// Login endpoint – any username is accepted
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   // In production, verify password properly.
